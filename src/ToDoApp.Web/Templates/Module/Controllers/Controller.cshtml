@@ -1,0 +1,82 @@
+@model ModuleModel
+using Microsoft.AspNetCore.Mvc;
+using ToDoApp.Objects;
+using ToDoApp.Services;
+using ToDoApp.Validators;
+using System;
+
+namespace @Model.ControllerNamespace
+{
+    @if (!String.IsNullOrWhiteSpace(Model.Area))
+    {
+    @:[Area(nameof(Area.@(Model.Area)))]
+    }
+    public class @Model.Controller : ValidatedController<@Model.IValidator, @Model.IService>
+    {
+        public @(Model.Controller)(@Model.IValidator validator, @Model.IService service)
+            : base(validator, service)
+        {
+        }
+
+        [HttpGet]
+        public ViewResult Index()
+        {
+            return View(Service.GetViews());
+        }
+
+        [HttpGet]
+        public ViewResult Create()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult Create(@Model.View @Model.ModelVarName)
+        {
+            if (!Validator.CanCreate(@Model.ModelVarName))
+                return View(@Model.ModelVarName);
+
+            Service.Create(@Model.ModelVarName);
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet]
+        public ActionResult Details(Int64 id)
+        {
+            return NotEmptyView(Service.Get<@Model.View>(id));
+        }
+
+        [HttpGet]
+        public ActionResult Edit(Int64 id)
+        {
+            return NotEmptyView(Service.Get<@Model.View>(id));
+        }
+
+        [HttpPost]
+        public ActionResult Edit(@Model.View @Model.ModelVarName)
+        {
+            if (!Validator.CanEdit(@Model.ModelVarName))
+                return View(@Model.ModelVarName);
+
+            Service.Edit(@Model.ModelVarName);
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet]
+        public ActionResult Delete(Int64 id)
+        {
+            return NotEmptyView(Service.Get<@Model.View>(id));
+        }
+
+        [HttpPost]
+        [ActionName("Delete")]
+        public RedirectToActionResult DeleteConfirmed(Int64 id)
+        {
+            Service.Delete(id);
+
+            return RedirectToAction(nameof(Index));
+        }
+    }
+}

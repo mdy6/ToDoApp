@@ -1,0 +1,172 @@
+@model ModuleModel
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
+using ToDoApp.Components.Security;
+using ToDoApp.Objects;
+using ToDoApp.Services;
+using ToDoApp.Validators;
+using NSubstitute;
+using System;
+using System.Linq;
+using Xunit;
+
+namespace @Model.ControllerTestsNamespace
+{
+    public class @Model.ControllerTests : ControllerTests
+    {
+        private @Model.IValidator validator;
+        private @Model.IService service;
+        private @Model.Controller controller;
+        private @Model.View @Model.ModelVarName;
+
+        public @(Model.ControllerTests)()
+        {
+            service = Substitute.For<@Model.IService>();
+            validator = Substitute.For<@Model.IValidator>();
+            @Model.ModelVarName = ObjectsFactory.Create@(Model.View)(0);
+            controller = Substitute.ForPartsOf<@Model.Controller>(validator, service);
+
+            controller.Authorization.Returns(Substitute.For<IAuthorization>());
+            controller.ControllerContext.RouteData = new RouteData();
+        }
+        public override void Dispose()
+        {
+            controller.Dispose();
+            validator.Dispose();
+            service.Dispose();
+        }
+
+        [Fact]
+        public void Index_Returns@(Model.ModelShortName)Views()
+        {
+            service.GetViews().Returns(Array.Empty<@Model.View>().AsQueryable());
+
+            Object actual = controller.Index().Model;
+            Object expected = service.GetViews();
+
+            Assert.Same(expected, actual);
+        }
+
+        [Fact]
+        public void Create_ReturnsEmptyView()
+        {
+            ViewResult actual = controller.Create();
+
+            Assert.Null(actual.Model);
+        }
+
+        [Fact]
+        public void Create_CanNotCreate_ReturnsSameView()
+        {
+            validator.CanCreate(@Model.ModelVarName).Returns(false);
+
+            Object actual = Assert.IsType<ViewResult>(controller.Create(@Model.ModelVarName)).Model;
+            Object expected = @Model.ModelVarName;
+
+            Assert.Same(expected, actual);
+        }
+
+        [Fact]
+        public void Create_@(Model.ModelShortName)()
+        {
+            validator.CanCreate(@Model.ModelVarName).Returns(true);
+
+            controller.Create(@Model.ModelVarName);
+
+            service.Received().Create(@Model.ModelVarName);
+        }
+
+        [Fact]
+        public void Create_RedirectsToIndex()
+        {
+            validator.CanCreate(@Model.ModelVarName).Returns(true);
+
+            Object expected = RedirectToAction(controller, nameof(@(Model.Controller).Index));
+            Object actual = controller.Create(@Model.ModelVarName);
+
+            Assert.Same(expected, actual);
+        }
+
+        [Fact]
+        public void Details_ReturnsNotEmptyView()
+        {
+            service.Get<@Model.View>(@(Model.ModelVarName).Id).Returns(@Model.ModelVarName);
+
+            Object expected = NotEmptyView(controller, @Model.ModelVarName);
+            Object actual = controller.Details(@(Model.ModelVarName).Id);
+
+            Assert.Same(expected, actual);
+        }
+
+        [Fact]
+        public void Edit_ReturnsNotEmptyView()
+        {
+            service.Get<@Model.View>(@(Model.ModelVarName).Id).Returns(@Model.ModelVarName);
+
+            Object expected = NotEmptyView(controller, @Model.ModelVarName);
+            Object actual = controller.Edit(@(Model.ModelVarName).Id);
+
+            Assert.Same(expected, actual);
+        }
+
+        [Fact]
+        public void Edit_CanNotEdit_ReturnsSameView()
+        {
+            validator.CanEdit(@Model.ModelVarName).Returns(false);
+
+            Object actual = Assert.IsType<ViewResult>(controller.Edit(@Model.ModelVarName)).Model;
+            Object expected = @Model.ModelVarName;
+
+            Assert.Same(expected, actual);
+        }
+
+        [Fact]
+        public void Edit_@(Model.ModelShortName)()
+        {
+            validator.CanEdit(@Model.ModelVarName).Returns(true);
+
+            controller.Edit(@Model.ModelVarName);
+
+            service.Received().Edit(@Model.ModelVarName);
+        }
+
+        [Fact]
+        public void Edit_RedirectsToIndex()
+        {
+            validator.CanEdit(@Model.ModelVarName).Returns(true);
+
+            Object expected = RedirectToAction(controller, nameof(@(Model.Controller).Index));
+            Object actual = controller.Edit(@Model.ModelVarName);
+
+            Assert.Same(expected, actual);
+        }
+
+        [Fact]
+        public void Delete_ReturnsNotEmptyView()
+        {
+            service.Get<@Model.View>(@(Model.ModelVarName).Id).Returns(@Model.ModelVarName);
+
+            Object expected = NotEmptyView(controller, @Model.ModelVarName);
+            Object actual = controller.Delete(@(Model.ModelVarName).Id);
+
+            Assert.Same(expected, actual);
+        }
+
+        [Fact]
+        public void DeleteConfirmed_Deletes@(Model.ModelShortName)()
+        {
+            controller.DeleteConfirmed(@(Model.ModelVarName).Id);
+
+            service.Received().Delete(@(Model.ModelVarName).Id);
+        }
+
+        [Fact]
+        public void DeleteConfirmed_RedirectsToIndex()
+        {
+            Object expected = RedirectToAction(controller, nameof(@(Model.Controller).Index));
+            Object actual = controller.DeleteConfirmed(@(Model.ModelVarName).Id);
+
+            Assert.Same(expected, actual);
+        }
+    }
+}

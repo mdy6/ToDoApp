@@ -1,0 +1,157 @@
+@model ModuleModel
+using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
+using ToDoApp.Data;
+using ToDoApp.Objects;
+using System;
+using System.Linq;
+using Xunit;
+
+namespace ToDoApp.Services
+{
+    public class @Model.ServiceTests : IDisposable
+    {
+        private @Model.Service service;
+        private DbContext context;
+        private @Model.Model @Model.ModelVarName;
+
+        public @(Model.ServiceTests)()
+        {
+            context = TestingContext.Create();
+            service = new @(Model.Service)(new UnitOfWork(TestingContext.Create(), TestingContext.Mapper));
+
+            context.Drop().Add(@Model.ModelVarName = ObjectsFactory.Create@(Model.Model)(0));
+            context.SaveChanges();
+        }
+        public void Dispose()
+        {
+            service.Dispose();
+            context.Dispose();
+        }
+
+        [Fact]
+        public void Get_ReturnsViewById()
+        {
+            @Model.View expected = TestingContext.Mapper.Map<@Model.View>(@Model.ModelVarName);
+            @Model.View actual = service.Get<@Model.View>(@(Model.ModelVarName).Id)!;
+
+            @if (Model.ViewProperties.Length == 0)
+            {
+            @:Assert.True(false, "Not all properties tested");
+            }
+            else
+            {
+                foreach (PropertyInfo property in Model.AllViewProperties.OrderByDescending(prop => prop.Name.Length).ThenBy(prop => prop.Name))
+                {
+            @:Assert.Equal(expected.@property.Name, actual.@property.Name);
+                }
+            }
+        }
+
+        [Fact]
+        public void GetViews_Returns@(Model.ModelShortName)Views()
+        {
+            @(Model.View)[] actual = service.GetViews().ToArray();
+            @(Model.View)[] expected = context
+                .Set<@Model.Model>()
+                .ProjectTo<@Model.View>(TestingContext.Mapper.ConfigurationProvider)
+                .OrderByDescending(view => view.Id)
+                .ToArray();
+
+            for (Int32 i = 0; i < expected.Length || i < actual.Length; i++)
+            {
+@foreach (PropertyInfo property in Model.AllViewProperties.OrderByDescending(prop => prop.Name.Length).ThenBy(prop => prop.Name))
+{
+                @:Assert.Equal(expected[i].@property.Name, actual[i].@property.Name);
+}
+            }
+            @if (Model.ViewProperties.Length == 0)
+            {
+            @:Assert.True(false, "Not all properties tested");
+            }
+        }
+
+        [Fact]
+        public void Create_@(Model.ModelShortName)()
+        {
+            @Model.View view = ObjectsFactory.Create@(Model.View)(@(Model.ModelVarName).Id + 1);
+
+            service.Create(view);
+
+            @Model.Model actual = Assert.Single(context.Set<@Model.Model>(), model => model.Id != @(Model.ModelVarName).Id);
+            @Model.View expected = view;
+
+            @if (Model.ModelProperties.Length == 0)
+            {
+            @:Assert.True(false, "Not all properties tested");
+            }
+            else
+            {
+                foreach (PropertyInfo property in Model.AllModelProperties.Where(prop => prop.Name != "Id").OrderByDescending(prop => prop.Name.Length).ThenBy(prop => prop.Name))
+                {
+                    if (Model.AllViewProperties.Any(prop => prop.Name == property.Name))
+                    {
+            @:Assert.Equal(expected.@property.Name, actual.@property.Name);
+                    }
+                    else
+                    {
+            @:Assert.Null(actual.@property.Name);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void Edit_@(Model.ModelShortName)()
+        {
+            @Model.View view = ObjectsFactory.Create@(Model.View)(@(Model.ModelVarName).Id);
+            @{ IEnumerable<String> changes = Model.ViewProperties.Select(property =>
+            {
+                if (property.PropertyType == typeof(String))
+                {
+                    return $"view.{property.Name} = {Model.ModelVarName}.{property.Name} += \"Test\"";
+                }
+                if (typeof(Boolean?).IsAssignableFrom(property.PropertyType))
+                {
+                    return $"view.{property.Name} = {Model.ModelVarName}.{property.Name} = !{Model.ModelVarName}.{property.Name}";
+                }
+                if (typeof(DateTime?).IsAssignableFrom(property.PropertyType))
+                {
+                    return $"view.{property.Name} = {Model.ModelVarName}.{property.Name} = {Model.ModelVarName}.{property.Name}.AddDays(1)";
+                }
+
+                return $"view.{property.Name} = {Model.ModelVarName}.{property.Name} += 1";
+            }).OrderByDescending(change => change.Length);
+            }
+@foreach(String change in changes)
+{
+            @:@change;
+}
+
+            service.Edit(view);
+
+            @Model.Model actual = Assert.Single(context.Set<@Model.Model>().AsNoTracking());
+            @Model.Model expected = @Model.ModelVarName;
+
+            @if (Model.ModelProperties.Length == 0)
+            {
+            @:Assert.True(false, "Not all properties tested");
+            }
+            else
+            {
+                foreach (PropertyInfo property in Model.AllModelProperties.OrderByDescending(prop => prop.Name.Length).ThenBy(prop => prop.Name))
+                {
+            @:Assert.Equal(expected.@property.Name, actual.@property.Name);
+                }
+            }
+        }
+
+        [Fact]
+        public void Delete_@(Model.ModelShortName)()
+        {
+            service.Delete(@(Model.ModelVarName).Id);
+
+            Assert.Empty(context.Set<@Model.Model>());
+        }
+    }
+}

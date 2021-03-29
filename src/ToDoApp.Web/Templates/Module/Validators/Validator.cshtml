@@ -1,0 +1,104 @@
+@model ModuleModel
+@if (Model.Indexes.Any())
+{
+@:using ToDoApp.Data;
+@:using ToDoApp.Objects;
+@:using ToDoApp.Resources;
+@:using System;
+@:using System.Linq;
+}
+else
+{
+@:using ToDoApp.Data;
+@:using ToDoApp.Objects;
+@:using System;
+}
+
+namespace ToDoApp.Validators
+{
+    public class @Model.Validator : AValidator, @Model.IValidator
+    {
+        public @(Model.Validator)(IUnitOfWork unitOfWork)
+            : base(unitOfWork)
+        {
+        }
+
+        public Boolean CanCreate(@Model.View view)
+        {
+            @foreach (PropertyInfo property in Model.Indexes)
+            {
+                if (property == Model.Indexes[0])
+                {
+            @:Boolean isValid = IsUnique@(property.Name)(0, view.@(property.Name));
+                }
+                else
+                {
+            @:isValid &= IsUnique@(property.Name)(0, view.@(property.Name));
+                }
+            }
+            @if (Model.Indexes.Any())
+            {
+@:isValid &= ModelState.IsValid;
+@:
+            @:return isValid;
+            }
+            else
+            {
+@:return ModelState.IsValid;
+            }
+        }
+        public Boolean CanEdit(@Model.View view)
+        {
+            @foreach (PropertyInfo property in Model.Indexes)
+            {
+                if (property == Model.Indexes[0])
+                {
+            @:Boolean isValid = IsUnique@(property.Name)(view.Id, view.@(property.Name));
+                }
+                else
+                {
+            @:isValid &= IsUnique@(property.Name)(view.Id, view.@(property.Name));
+                }
+            }
+            @if (Model.Indexes.Any())
+            {
+@:isValid &= ModelState.IsValid;
+@:
+            @:return isValid;
+            }
+            else
+            {
+@:return ModelState.IsValid;
+            }
+        }
+        @if (Model.Indexes.Any())
+        {
+@:
+            @foreach (PropertyInfo property in Model.Indexes)
+            {
+                String name = Regex.Split(property.Name, "(?=[A-Z])").Last().ToLower();
+
+                if (Nullable.GetUnderlyingType(property.PropertyType) is Type nullableType)
+                {
+        @:private Boolean IsUnique@(property.Name)(Int64 id, @(nullableType.Name)? @name)
+                }
+                else
+                {
+        @:private Boolean IsUnique@(property.Name)(Int64 id, @property.PropertyType.Name @name)
+                }
+        @:{
+        @:    Boolean isUnique = !UnitOfWork
+        @:        .Select<@Model.Model>()
+        @:        .Any(@Model.ModelVarName =>
+        @:            @(Model.ModelVarName).Id != id &&
+        @:            @(Model.ModelVarName).@(property.Name) == @name);
+@:
+        @:    if (!isUnique)
+        @:        ModelState.AddModelError(nameof(@(Model.View).@(property.Name)), Validation.For<@Model.View>("Unique@(property.Name)"));
+@:
+        @:    return isUnique;
+        @:}
+            }
+        }
+    }
+}

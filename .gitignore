@@ -1,0 +1,12 @@
+/src/ToDoApp.Web/wwwroot/css/**/*.min.css
+/src/ToDoApp.Web/wwwroot/js/**/*.min.js
+/src/ToDoApp.Web/node_modules/
+
+/src/ToDoApp.Web/Logs/
+.vscode/
+.vs/
+bin/
+obj/
+
+*.user
+*.suo

@@ -1,0 +1,46 @@
+@model ModuleModel
+@@model IQueryable<@Model.View>
+
+<div class="col">
+    <div class="widget-box">
+        <div class="widget-header">
+            <span class="icon fa fa-th"></span>
+            <h5>@@Resource.ForHeader("@(Model.Models)")</h5>
+            <div class="widget-header-buttons">
+                <authorize action="@@nameof(@(Model.Controller).Create)">
+                    <a asp-action="@@nameof(@(Model.Controller).Create)" class="btn">
+                        <span class="far fa-file"></span><span class="text">@@Resource.ForAction(nameof(@(Model.Controller).Create))</span>
+                    </a>
+                </authorize>
+            </div>
+        </div>
+        <div class="widget-content">
+            @@(Html
+                .Grid(Model)
+                .Build(columns =>
+                {
+                    columns.AddAction(nameof(@(Model.Controller).Details), "fa fa-info");
+                    columns.AddAction(nameof(@(Model.Controller).Edit), "fa fa-pencil-alt");
+                    columns.AddAction(nameof(@(Model.Controller).Delete), "fa fa-times");
+
+                    @foreach (PropertyInfo property in Model.ViewProperties)
+                    {
+                        if (typeof(DateTime?).IsAssignableFrom(property.PropertyType))
+                        {
+                    @:columns.AddDate(model => model.@property.Name);
+                        }
+                        else if (typeof(Boolean?).IsAssignableFrom(property.PropertyType))
+                        {
+                    @:columns.AddBoolean(model => model.@property.Name);
+                        }
+                        else if (Model.Relations[property] == null)
+                        {
+                    @:columns.AddProperty(model => model.@property.Name);
+                        }
+                    }
+                })
+                .ApplyDefaults()
+            )
+        </div>
+    </div>
+</div>

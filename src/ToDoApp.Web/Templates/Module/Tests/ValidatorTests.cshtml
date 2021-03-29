@@ -1,0 +1,123 @@
+@model ModuleModel
+using Microsoft.EntityFrameworkCore;
+using ToDoApp.Data;
+using ToDoApp.Objects;
+@if (Model.Indexes.Any())
+{
+@:using ToDoApp.Resources;
+}
+using System;
+@if (Model.Indexes.Any())
+{
+@:using System.Linq;
+}
+using Xunit;
+
+namespace ToDoApp.Validators
+{
+    public class @Model.ValidatorTests : IDisposable
+    {
+        private @Model.Validator validator;
+        private DbContext context;
+        private @Model.Model @Model.ModelVarName;
+
+        public @(Model.ValidatorTests)()
+        {
+            context = TestingContext.Create();
+            validator = new @(Model.Validator)(new UnitOfWork(TestingContext.Create(), TestingContext.Mapper));
+
+            context.Drop().Add(@Model.ModelVarName = ObjectsFactory.Create@(Model.Model)(0));
+            context.SaveChanges();
+        }
+        public void Dispose()
+        {
+            context.Dispose();
+            validator.Dispose();
+        }
+
+        [Fact]
+        public void CanCreate_InvalidState_ReturnsFalse()
+        {
+            validator.ModelState.AddModelError("Test", "Test");
+
+            Assert.False(validator.CanCreate(ObjectsFactory.Create@(Model.View)(@(Model.ModelVarName).Id + 1)));
+            Assert.Single(validator.ModelState);
+            Assert.Empty(validator.Alerts);
+        }
+        @foreach (PropertyInfo index in Model.Indexes)
+        {
+@:
+        @:[Fact]
+        @:public void CanCreate_Used@(index.Name)_ReturnsFalse()
+        @:{
+        @:    @Model.View view = ObjectsFactory.Create@(Model.View)(@(Model.ModelVarName).Id + 1);
+            if (index.PropertyType == typeof(String))
+            {
+        @:    view.@(index.Name) = @(Model.ModelVarName).@(index.Name).ToLower();
+            }
+            else
+            {
+        @:    view.@(index.Name) = @(Model.ModelVarName).@(index.Name);
+            }
+        @:    view.Id = @(Model.ModelVarName).Id;
+@:
+        @:    Boolean canCreate = validator.CanCreate(view);
+@:
+        @:    Assert.False(canCreate);
+        @:    Assert.Empty(validator.Alerts);
+        @:    Assert.Single(validator.ModelState);
+        @:    Assert.Equal(Validation.For<@Model.View>("Unique@(index.Name)"), validator.ModelState[nameof(@(Model.View).@(index.Name))].Errors.Single().ErrorMessage);
+        @:}
+        }
+
+        [Fact]
+        public void CanCreate_Valid@(Model.ModelShortName)()
+        {
+            Assert.True(validator.CanCreate(ObjectsFactory.Create@(Model.View)(@(Model.ModelVarName).Id + 1)));
+            Assert.Empty(validator.ModelState);
+            Assert.Empty(validator.Alerts);
+        }
+
+        [Fact]
+        public void CanEdit_InvalidState_ReturnsFalse()
+        {
+            validator.ModelState.AddModelError("Test", "Test");
+
+            Assert.False(validator.CanEdit(ObjectsFactory.Create@(Model.View)(@(Model.ModelVarName).Id + 1)));
+            Assert.Single(validator.ModelState);
+            Assert.Empty(validator.Alerts);
+        }
+        @foreach (PropertyInfo index in Model.Indexes)
+        {
+@:
+        @:[Fact]
+        @:public void CanEdit_Used@(index.Name)_ReturnsFalse()
+        @:{
+        @:    @Model.View view = ObjectsFactory.Create@(Model.View)(@(Model.ModelVarName).Id + 1);
+            if (index.PropertyType == typeof(String))
+            {
+        @:    view.@(index.Name) = @(Model.ModelVarName).@(index.Name).ToLower();
+            }
+            else
+            {
+        @:    view.@(index.Name) = @(Model.ModelVarName).@(index.Name);
+            }
+@:
+        @:    Boolean canEdit = validator.CanEdit(view);
+@:
+        @:    Assert.False(canEdit);
+        @:    Assert.Empty(validator.Alerts);
+        @:    Assert.Single(validator.ModelState);
+        @:    Assert.Equal(Validation.For<@Model.View>("Unique@(index.Name)"), validator.ModelState[nameof(@(Model.View).@(index.Name))].Errors.Single().ErrorMessage);
+        @:}
+        }
+
+        [Fact]
+        public void CanEdit_Valid@(Model.ModelShortName)()
+        {
+            Assert.True(validator.CanEdit(ObjectsFactory.Create@(Model.View)(@(Model.ModelVarName).Id + 1)));
+            Assert.Empty(validator.ModelState);
+            Assert.Empty(validator.Alerts);
+        }
+    }
+}

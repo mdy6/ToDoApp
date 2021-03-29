@@ -1,0 +1,17 @@
+@model ModuleModel
+using ToDoApp.Objects;
+using System;
+using System.Linq;
+
+namespace ToDoApp.Services
+{
+    public interface @Model.IService : IService
+    {
+        TView? Get<TView>(Int64 id) where TView : AView;
+        IQueryable<@Model.View> GetViews();
+
+        void Create(@Model.View view);
+        void Edit(@Model.View view);
+        void Delete(Int64 id);
+    }
+}

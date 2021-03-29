@@ -1,0 +1,12 @@
+@model ModuleModel
+using ToDoApp.Objects;
+using System;
+
+namespace ToDoApp.Validators
+{
+    public interface @Model.IValidator : IValidator
+    {
+        Boolean CanCreate(@Model.View view);
+        Boolean CanEdit(@Model.View view);
+    }
+}

@@ -1,0 +1,17 @@
+{
+  "scripts": {
+    "build": "node bundle.js"
+  },
+  "devDependencies": {
+    "esbuild": "0.8.45",
+    "glob": "7.1.6"
+  },
+  "dependencies": {
+    "@bevacqua/rome": "3.0.3",
+    "@fortawesome/fontawesome-free": "5.15.2",
+    "bootstrap": "4.6.0",
+    "bootstrap.native": "3.0.14",
+    "moment": "2.29.1",
+    "wellidate": "2.2.3"
+  }
+}
